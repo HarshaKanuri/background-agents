@@ -104,6 +104,14 @@ resource "cloudflare_worker_version" "this" {
 # =============================================================================
 
 resource "cloudflare_workers_deployment" "this" {
+  # Skip during the initial DO migration phase (enable_durable_object_bindings=false with DOs).
+  # Cloudflare's Gradual Deployments API returns 412 (error 10079) when a migration is applied
+  # via cloudflare_workers_deployment on a fresh worker with no prior deployment. Skipping it
+  # allows the version to be auto-activated at 100% (Cloudflare's default for workers with no
+  # explicit deployment), which also applies the DO migration. On Phase 2
+  # (enable_durable_object_bindings=true) an explicit deployment is created with DO bindings.
+  count = length(var.durable_objects) > 0 && !var.enable_durable_object_bindings ? 0 : 1
+
   account_id  = var.account_id
   script_name = cloudflare_worker.this.name
   strategy    = "percentage"

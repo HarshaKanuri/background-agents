@@ -14,8 +14,8 @@ output "version_id" {
 }
 
 output "deployment_id" {
-  description = "The ID of the deployment"
-  value       = cloudflare_workers_deployment.this.id
+  description = "The ID of the deployment (null during initial DO migration phase)"
+  value       = length(cloudflare_workers_deployment.this) > 0 ? cloudflare_workers_deployment.this[0].id : null
 }
 
 output "worker_url" {
